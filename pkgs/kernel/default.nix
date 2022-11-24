@@ -23,7 +23,7 @@ stdenv.mkDerivation rec {
   hardeningDisable = ["all"];
   nativeBuildInputs = [buildPackages.stdenv.cc] ++
                       (with buildPackages.pkgs;
-                        [rsync bc bison flex pkgconfig openssl ncurses.all perl]);
+                        [rsync bc bison flex pkgconfig ncurses.all perl]);
   CC = "${stdenv.cc.bintools.targetPrefix}gcc";
   HOSTCC = with buildPackages.pkgs;
     "gcc -I${openssl}/include -I${ncurses}/include";
@@ -81,7 +81,7 @@ stdenv.mkDerivation rec {
   '';
 
   buildPhase = ''
-    make vmlinux modules_prepare
+    make -j16 vmlinux modules_prepare
   '';
 
   installPhase = ''

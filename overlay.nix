@@ -25,6 +25,11 @@ final: prev: {
     nettle = null;
   };
 
+  openssl = prev.openssl.overrideAttrs(o: {
+  preBuild =  ''
+      makeFlagsArray=("LDFLAGS=-latomic")
+  '';
+	});
 
   tufted = final.callPackage ./pkgs/tufted {};
 

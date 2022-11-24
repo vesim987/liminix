@@ -1,5 +1,7 @@
+{nixpkgs
+}:
 modules : pkgs :
-let evalModules = (import <nixpkgs/lib>).evalModules;
+let evalModules = nixpkgs.lib.evalModules;
 in (evalModules {
   modules =
     [

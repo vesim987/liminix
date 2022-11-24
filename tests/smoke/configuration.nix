@@ -20,23 +20,23 @@ in rec {
     let iface = interface { type = "hardware"; device = "eth0"; };
     in odhcpc iface { uid = "e7"; };
 
-  services.ntp = longrun {
-    name = "ntp";
-    run = let inherit (services) dhcpv4 dhcpv6;
-          in "${pkgs.ntp}/bin/ntpd $(output ${dhcpv4} ntp_servers) $(output ${dhcpv6} NTP_IP})";
+  #services.ntp = longrun {
+  #  name = "ntp";
+  #  run = let inherit (services) dhcpv4 dhcpv6;
+  #        in "${pkgs.ntp}/bin/ntpd $(output ${dhcpv4} ntp_servers) $(output ${dhcpv6} NTP_IP})";
 
-    # I don't think it's possible to standardise the file names
-    # generally, as different services have different outputs, but it
-    # would be cool if services that provide an interface could use
-    # the same name as each other. e.g. for anything implementing
-    # addressProvider you might expect (output svc "address") or
-    # (output svc "family") to work. Otherwise switching a network link
-    # from static to dhcp might require reviewing all the downstreams
-    # that refer to it.
-    # Also, services should declare the outputs they provide
-    outputs = [];
-    dependencies = [services.dhcpv4];
-  };
+  #  # I don't think it's possible to standardise the file names
+  #  # generally, as different services have different outputs, but it
+  #  # would be cool if services that provide an interface could use
+  #  # the same name as each other. e.g. for anything implementing
+  #  # addressProvider you might expect (output svc "address") or
+  #  # (output svc "family") to work. Otherwise switching a network link
+  #  # from static to dhcp might require reviewing all the downstreams
+  #  # that refer to it.
+  #  # Also, services should declare the outputs they provide
+  #  outputs = [];
+  #  dependencies = [services.dhcpv4];
+  #};
 
   services.defaultroute4 = route {
     name = "defautlrote";
@@ -58,7 +58,7 @@ in rec {
 
   services.default = target {
     name = "default";
-    contents = with services; [ loopback ntp defaultroute4 ];
+    contents = with services; [ loopback defaultroute4 ];
   };
 
   defaultProfile.packages = [ pkgs.hello ] ;

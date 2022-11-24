@@ -1,17 +1,25 @@
 {
-  device ? (import devices/gl-ar750.nix)
+  nixpkgs_ ? <nixpkgs>
+, device_file ? ./devices/gl-ar750
+, liminix-config ? <liminix-config>
 , phram ? false
 }:
 
 let
+  device = import device_file;
   overlay = import ./overlay.nix;
-  nixpkgs = import <nixpkgs> (device.system // {overlays = [overlay device.overlay]; });
+  nixpkgs = import nixpkgs_ ({
+    config.allowUnsupportedSystem = true;
+    system = "x86_64-linux";
+    overlays = [overlay device.overlay];
+    crossSystem = device.system.crossSystem;
+  });
   inherit (nixpkgs) callPackage writeText liminix fetchFromGitHub;
   inherit (nixpkgs.lib) concatStringsSep;
-  config = (import ./merge-modules.nix) [
+  config = (import ./merge-modules.nix{ inherit nixpkgs;}) [
     ./modules/base.nix
     ({ lib, ... } : { config = { inherit (device) kernel; }; })
-    <liminix-config>
+    liminix-config
     ./modules/s6
     ./modules/users.nix
     (if phram then  ./modules/phram.nix else (args: {}))
