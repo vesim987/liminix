@@ -1,6 +1,7 @@
 {
   nixpkgs_ ? <nixpkgs>
 , device_file ? ./devices/gl-ar750
+, openwrt-source ? null
 , liminix-config ? <liminix-config>
 , phram ? false
 }:
@@ -26,13 +27,13 @@ let
   ] nixpkgs;
   squashfs = liminix.builders.squashfs config.filesystem.contents;
 
-  openwrt = fetchFromGitHub {
+  openwrt = if !builtins.isNull openwrt-source then openwrt-source else (fetchFromGitHub {
     name = "openwrt-source";
     repo = "openwrt";
     owner = "openwrt";
     rev = "a5265497a4f6da158e95d6a450cb2cb6dc085cab";
     hash = "sha256-YYi4gkpLjbOK7bM2MGQjAyEBuXJ9JNXoz/JEmYf8xE8=";
-  };
+  });
 
   outputs = rec {
     inherit squashfs;

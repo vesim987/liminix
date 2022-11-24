@@ -6,6 +6,6 @@
         nixpkgs_ = nixpkgs;
         liminix-config = ./tests/wlan/configuration.nix;
         device_file = ./devices/qemu/default.nix;
-      }).outputs.kernel;
+      }).outputs.directory;
    };
 }

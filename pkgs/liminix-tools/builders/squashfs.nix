@@ -1,5 +1,7 @@
 {
   stdenv
+, squashfsTools
+, closureInfo
 , busybox
 , buildPackages
 , callPackage
@@ -10,16 +12,35 @@
 let
   pseudofiles = pseudofile.write "files.pf" filesystem;
 
-  storefs = callPackage <nixpkgs/nixos/lib/make-squashfs.nix> {
-    # 1) Every required package is referenced from somewhere
-    # outside /nix/store. 2) Every file outside the store is
-    # specified by config.filesystem. 3) Therefore, closing over
-    # the pseudofile will give us all the needed packages
-    storeContents = [ pseudofiles ];
+  storefs = stdenv.mkDerivation {
+    name = "squashfs.img";
+
+    nativeBuildInputs = [ buildPackages.squashfsTools ];
+
+    buildCommand =
+      ''
+        closureInfo=${closureInfo { rootPaths = pseudofiles; }}
+
+        # Also include a manifest of the closures in a format suitable
+        # for nix-store --load-db.
+        cp $closureInfo/registration nix-path-registration
+
+        # 64 cores on i686 does not work
+        # fails with FATAL ERROR: mangle2:: xz compress failed with error code 5
+        if ((NIX_BUILD_CORES > 48)); then
+          NIX_BUILD_CORES=48
+        fi
+
+        # Generate the squashfs image.
+        mksquashfs nix-path-registration $(cat $closureInfo/store-paths) $out \
+          -no-hardlinks -keep-as-directory -all-root -b 1048576 -comp xz -Xdict-size 100% \
+          -processors $NIX_BUILD_CORES
+      '';
   };
-in runCommand "frob-squashfs" {
-    nativeBuildInputs = with buildPackages; [ squashfsTools qprint ];
-} ''
+  in runCommand "frob-squashfs" {
+      nativeBuildInputs = with buildPackages; [ squashfsTools qprint ];
+  } ''
+    echo ${pseudofiles}
     cp ${storefs} ./store.img
     chmod +w store.img
     mksquashfs - store.img -exit-on-error -no-recovery -quiet -no-progress  -root-becomes store -p "/ d 0755 0 0"

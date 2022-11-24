@@ -5,7 +5,7 @@ let
   inherit (nixpkgs) lib pkgs;
   inherit (lib.asserts) assertMsg;
   config =
-    (import <liminix/merge-modules.nix>) [./configuration.nix] pkgs;
+    (import ../../merge-modules.nix) [./configuration.nix] pkgs;
   res1 = assertMsg
     # check we have packages from both modules
     (config.systemPackages == ( with pkgs; [ units hello ])) "failed";
